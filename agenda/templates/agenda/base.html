@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Agenda de Arquitetos{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .main-content {
+            min-height: calc(100vh - 76px);
+            padding: 20px 0;
+        }
+        .logout-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,.55);
+            padding: 0.5rem 1rem;
+        }
+        .logout-btn:hover {
+            color: rgba(255,255,255,.75);
+        }
+    </style>
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% if user.is_arquiteto %}{% url 'calendario_pessoal' %}{% else %}{% url 'calendario' %}{% endif %}">
+                <i class="fas fa-calendar-alt"></i> Realize Imoveis
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if user.is_arquiteto %}{% url 'calendario_pessoal' %}{% else %}{% url 'calendario' %}{% endif %}">
+                            <i class="fas fa-calendar"></i> Calendário
+                        </a>
+                    </li>
+                    {% if not user.is_arquiteto %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cliente_list' %}">
+                            <i class="fas fa-users"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'statusprojeto_list' %}">
+                            <i class="fas fa-tasks"></i> Status
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projeto_list' %}">
+                            <i class="fas fa-project-diagram"></i> Projetos
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="navbar-text me-3">
+                            <i class="fas fa-user"></i> 
+                            {{ user.get_full_name|default:user.username }}
+                            {% if user.is_arquiteto %}
+                                <span class="badge bg-info">Arquiteto</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Empresa</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <form method="post" action="{% url 'logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Sair
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="main-content">
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

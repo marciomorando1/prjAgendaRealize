@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Agenda de Arquitetos{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .main-content {
+            min-height: calc(100vh - 76px);
+            padding: 20px 0;
+        }
+        .user-dropdown {
+            color: rgba(255,255,255,.85) !important;
+        }
+        .user-dropdown:hover {
+            color: white !important;
+        }
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% if user.is_arquiteto %}{% url 'calendario_pessoal' %}{% else %}{% url 'calendario' %}{% endif %}">
+                <i class="fas fa-calendar-alt"></i> Realize Imoveis
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if user.is_arquiteto %}{% url 'calendario_pessoal' %}{% else %}{% url 'calendario' %}{% endif %}">
+                            <i class="fas fa-calendar"></i> Calendário
+                        </a>
+                    </li>
+
+                    {% if not user.is_arquiteto %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cliente_list' %}">
+                            <i class="fas fa-users"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'statusprojeto_list' %}">
+                            <i class="fas fa-tasks"></i> Status
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projeto_list' %}">
+                            <i class="fas fa-project-diagram"></i> Projetos
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if not user.is_arquiteto %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'relatorio_obras' %}">
+                                <i class="fas fa-chart-bar"></i> Relatórios
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">
+                                <i class="fas fa-address-book"></i> Criar Nova Conta
+                            </a>
+                        </li>
+                    {% endif %}
+
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle user-dropdown d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-2"></i>
+                            <span class="d-none d-sm-inline">
+                                {{ user.get_full_name|default:user.username }}
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <span class="dropdown-item-text fw-bold">
+                                    <i class="fas fa-user me-2"></i>
+                                    {{ user.get_full_name|default:user.username }}
+                                </span>
+                            </li>
+                            <li>
+                                <span class="dropdown-item-text">
+                                    {% if user.is_arquiteto %}
+                                        <span class="badge bg-info">Arquiteto</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Empresa</span>
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="main-content">
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

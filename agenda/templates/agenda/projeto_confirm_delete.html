@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Projeto{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0 text-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+                </h4>
+            </div>
+            <div class="card-body">
+                <p>Tem certeza que deseja excluir o projeto <strong>"{{ object.descricao }}"</strong>?</p>
+                <p class="text-warning">
+                    <i class="fas fa-warning"></i> 
+                    Atenção: Esta ação não pode ser desfeita.
+                </p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Confirmar Exclusão
+                        </button>
+                        <a href="{% url 'projeto_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

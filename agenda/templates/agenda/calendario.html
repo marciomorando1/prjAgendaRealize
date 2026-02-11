@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Calendário Geral{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2><i class="fas fa-calendar me-2"></i>Calendário Geral</h2>
+        <p class="text-muted">Projetos Agendados</p>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Filtrar por Arquiteto</h6>
+                <form method="get" class="d-flex">
+                    <select name="usuario_id" class="form-select me-2" onchange="this.form.submit()">
+                        <option value="">Todos os Arquitetos</option>
+                        {% for arquiteto in arquitetos %}
+                        <option value="{{ arquiteto.id }}" {% if selected_arquiteto == arquiteto.id|stringformat:"i" %}selected{% endif %}>
+                            {{ arquiteto.get_full_name|default:arquiteto.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-calendar-alt me-2"></i>Agenda de Obras
+        </h5>
+    </div>
+    <div class="card-body">
+        <div id="calendar"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js'></script>
+
+<style>
+    #calendar {
+        max-width: 100%;
+        margin: 0 auto;
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .fc-event {
+        cursor: pointer;
+        border: none;
+        padding: 2px 5px;
+        font-size: 0.85em;
+    }
+    .fc-toolbar {
+        flex-wrap: wrap;
+    }
+    @media (max-width: 768px) {
+        #calendar {
+            padding: 10px;
+        }
+        .fc-toolbar-title {
+            font-size: 1.2em;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'pt-br',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        buttonText: {
+            today: 'Hoje',
+            month: 'Mês',
+            week: 'Semana',
+            day: 'Dia',
+            list: 'Lista'
+        },
+        events: '/api/projetos/{% if selected_arquiteto %}?usuario_id={{ selected_arquiteto }}{% endif %}',
+
+        eventClick: function(info) {
+            var event = info.event;
+            var dataFormatada = new Date(event.start).toLocaleString('pt-BR');
+            
+            var projeto = event.title || 'Não informado';
+            var cliente = event.extendedProps?.cliente_nome || 'Não informado';
+            var arquiteto = event.extendedProps?.usuario_nome || 'Não atribuído';
+            var status = event.extendedProps?.status_desc || 'Não informado';
+            var corStatus = event.extendedProps?.status_cor || '#3788d8';
+            var observacao = event.extendedProps?.observacao || 'Nenhuma observação cadastrada';  
+
+            var modalHTML = `
+                <div class="modal fade" id="detalhesProjetoModal" tabindex="-1">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header border-0 pb-0">
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <div class="mb-4">
+                                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                        <i class="fas fa-building fa-2x text-primary"></i>
+                                    </div>
+                                    <h5 class="mb-2">${projeto.split(' - ')[0]}</h5>
+                                    <p class="text-muted mb-3">${cliente}</p>
+                                </div>
+                                
+                                <div class="list-group list-group-flush">
+                                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                        <span class="text-muted">Arquiteto</span>
+                                        <strong>${arquiteto}</strong>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                        <span class="text-muted">Status</span>
+                                        <span class="badge" style="background-color: ${corStatus}; color: white;">${status}</span>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                        <span class="text-muted">Data</span>
+                                        <strong>${dataFormatada.split(',')[0]}</strong>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                        <span class="text-muted">Hora</span>
+                                        <strong>${dataFormatada.split(',')[1]}</strong>
+                                    </div>
+                                    
+                                    <!-- Nova seção para observação -->
+                                    <div class="list-group-item border-0 px-0">
+                                        <span class="text-muted d-block text-start mb-2">Observação</span>
+                                        <div class="bg-light rounded p-2 text-start">
+                                            <small class="text-muted">${observacao}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 justify-content-center">
+                                <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">OK</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remover modal anterior se existir
+            var modalAnterior = document.getElementById('detalhesProjetoModal');
+            if (modalAnterior) {
+                modalAnterior.remove();
+            }
+
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            var modal = new bootstrap.Modal(document.getElementById('detalhesProjetoModal'));
+            modal.show();
+        },
+
+        eventDidMount: function(info) {
+            const cor = info.event.extendedProps.status_cor;
+            if (cor) {
+                info.el.style.backgroundColor = cor;
+                info.el.style.borderColor = cor;
+                
+                const brightness = getBrightness(cor);
+                info.el.style.color = brightness > 128 ? 'black' : 'white';
+            }
+        },
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false
+        }
+    });
+    
+    calendar.render();
+});
+
+function getBrightness(hex) {
+    hex = hex.replace(/^#/, '');
+    
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    return (r * 299 + g * 587 + b * 114) / 1000;
+}
+</script>
+{% endblock %}
